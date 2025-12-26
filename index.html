@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>🎉 عيد ميلاد أسطوري 🎉</title>
+<style>
+/* ====== Background & Body ====== */
+body {
+  margin:0;
+  height:100vh;
+  background: radial-gradient(circle, #ff9a9e, #fad0c4);
+  font-family: 'Segoe UI', sans-serif;
+  direction: rtl;
+  overflow:hidden;
+  text-align:center;
+  color:white;
+}
+
+/* ====== Cake ====== */
+.cake {
+  margin:40px auto;
+  width:200px;
+  cursor:pointer;
+  animation: float 3s ease-in-out infinite;
+}
+@keyframes float {
+  0%,100%{transform:translateY(0);}
+  50%{transform:translateY(-10px);}
+}
+.layer {
+  height:50px;
+  border-radius:10px;
+  margin-bottom:5px;
+}
+.layer1 {background:#ffc1cc;}
+.layer2 {background:#ffb6c1;}
+.layer3 {background:#ffe4e1;}
+.candles {
+  display:flex;
+  justify-content:center;
+  gap:15px;
+}
+.candle {
+  width:10px;
+  height:30px;
+  background:white;
+  position:relative;
+}
+.candle::before {
+  content:"";
+  position:absolute;
+  top:-10px;
+  left:-5px;
+  width:20px;
+  height:20px;
+  background:orange;
+  border-radius:50%;
+  animation:flicker 0.3s infinite alternate;
+}
+.candle.off::before { background:transparent; animation:none;}
+@keyframes flicker {from {transform:scale(1);} to {transform:scale(1.2);}}
+
+/* ====== Name + Crown ====== */
+.name-box {position:relative; display:inline-block; margin-bottom:10px;}
+.crown {
+  position:absolute; top:-35px; left:50%; transform:translateX(-50%);
+  font-size:32px; animation:crownFloat 2s ease-in-out infinite; text-shadow:0 0 10px gold;
+}
+@keyframes crownFloat {0%,100% {transform:translateX(-50%) translateY(0);} 50%{transform:translateX(-50%) translateY(-8px);}}
+.magic-name {font-size:26px; animation:glowMove 3s infinite;}
+@keyframes glowMove {0% {color:#ff69b4;text-shadow:0 0 5px #ff69b4;} 50% {color:#ff1493;text-shadow:0 0 20px #ff1493;} 100% {color:#ff69b4;text-shadow:0 0 5px #ff69b4;}}
+
+/* ====== Buttons ====== */
+button {
+  margin:10px; padding:12px 25px; border:none; border-radius:25px;
+  background: linear-gradient(135deg,#ff69b4,#ff1493); color:white; font-size:16px; cursor:pointer;
+}
+
+/* ====== Countdown ====== */
+.countdown {display:flex; justify-content:center; gap:10px; margin:20px 0;}
+.countdown div {background:rgba(255,255,255,0.2); padding:10px; border-radius:10px; width:70px;}
+.countdown span {font-size:22px; font-weight:bold;}
+
+/* ====== Modal ====== */
+.modal {position:fixed; inset:0; background:rgba(0,0,0,0.7); display:flex; justify-content:center; align-items:center; z-index:10;}
+.modal-content {background:white; color:#333; padding:25px; border-radius:20px; width:85%; max-width:400px; text-align:center; position:relative;}
+.close {position:absolute; right:20px; top:10px; cursor:pointer; font-size:26px;}
+.hidden {display:none;}
+
+/* ====== Canvas ====== */
+canvas {position:fixed; inset:0; pointer-events:none; z-index:1;}
+</style>
+</head>
+<body>
+
+<audio id="music" src="music.mp3"></audio>
+
+<h1 class="magic-name">🎉 عيد ميلاد سعيد 🎉</h1>
+
+<div class="name-box">
+  <div class="crown">👑</div>
+  <h2 class="name magic-name">اسم الفتاة 👸</h2>
+</div>
+
+<!-- الكعكة -->
+<div class="cake">
+  <div class="layer layer1"></div>
+  <div class="layer layer2"></div>
+  <div class="layer layer3"></div>
+  <div class="candles">
+    <div class="candle"></div>
+    <div class="candle"></div>
+    <div class="candle"></div>
+  </div>
+</div>
+
+<p class="hint">🕯️ نفخ الشموع باش يطفيوا</p>
+<button onclick="blowCandles()">💨 نفخ الشموع</button>
+
+<!-- العداد -->
+<div class="countdown">
+  <div><span id="days">0</span><small>يوم</small></div>
+  <div><span id="hours">0</span><small>ساعة</small></div>
+  <div><span id="minutes">0</span><small>دقيقة</small></div>
+  <div><span id="seconds">0</span><small>ثانية</small></div>
+</div>
+
+<button onclick="openMsg()">📜 افتح الرسالة</button>
+
+<!-- رسالة -->
+<div id="msg" class="modal hidden">
+  <div class="modal-content">
+    <span onclick="closeMsg()" class="close">×</span>
+    <h2>💖 رسالة خاصة 💖</h2>
+    <p>
+      اليوم تزاد فيه إنسان ماشي بحال الناس 🌟  
+      شخص كيستاهل كل الحب والفرح  
+      نتمنى ليك عام جديد فيه القوة، النجاح، والضحكة ديما  
+      وما تنساش… راك أسطوري 🔥  
+      كل عام وانت بخير 🎂
+    </p>
+  </div>
+</div>
+
+<canvas id="confetti"></canvas>
+
+<script>
+// ====== Countdown ======
+const birthday = new Date("2025-12-31 00:00:00").getTime();
+setInterval(()=>{
+  const now = new Date().getTime();
+  const d = birthday - now;
+  if(d>0){
+    document.getElementById("days").innerHTML = Math.floor(d/(1000*60*60*24));
+    document.getElementById("hours").innerHTML = Math.floor((d%(1000*60*60*24))/(1000*60*60));
+    document.getElementById("minutes").innerHTML = Math.floor((d%(1000*60*60))/(1000*60));
+    document.getElementById("seconds").innerHTML = Math.floor((d%(1000*60))/1000);
+  }
+},1000);
+
+// ====== Cake & Candles ======
+function blowCandles(){
+  document.querySelectorAll(".candle").forEach(c=>c.classList.add("off"));
+  document.getElementById("music").play();
+  startConfetti();
+}
+
+// ====== Message Modal ======
+function openMsg(){document.getElementById("msg").classList.remove("hidden");}
+function closeMsg(){document.getElementById("msg").classList.add("hidden");}
+
+// ====== Confetti / Stars / Gifts ======
+const canvas = document.getElementById("confetti");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+let particles = [];
+function startConfetti(){
+  const shapes = ["★","🎁","✨"];
+  for(let i=0;i<150;i++){
+    particles.push({
+      x: Math.random()*canvas.width,
+      y: Math.random()*canvas.height,
+      r: Math.random()*6+3,
+      d: Math.random()*4+2,
+      shape: shapes[Math.floor(Math.random()*shapes.length)]
+    });
+  }
+  animate();
+}
+function animate(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.font = "20px Arial";
+  particles.forEach(p=>{
+    ctx.fillText(p.shape, p.x, p.y);
+    p.y += p.d;
+    if(p.y>canvas.height) p.y=0;
+  });
+  requestAnimationFrame(animate);
+}
+</script>
+
+</body>
+</html>sss
